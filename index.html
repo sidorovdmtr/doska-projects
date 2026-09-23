@@ -361,18 +361,19 @@
     {label:'Мох',       value:'#CBD6C2'}
   ];
 
-  const TODAY_ISO = new Date().toISOString().slice(0,10);
   const SEED_PROJECTS = [
-    {name:"Шкаф Восточно-Кругликовская (спальня)", dueDate:"2026-09-27"},
-    {name:"Кухня Хабибулина",                       dueDate:"2026-09-30"},
-    {name:"Шкаф-купе Москва",                        dueDate:"2026-09-27"},
-    {name:"Обувница Москва",                         dueDate:"2026-10-04"},
-    {name:"Кухня Городецкий",                        dueDate:""},
-    {name:"Кухня Коваль",                            dueDate:""},
-    {name:"Санузел Восточно-Кругликовская",          dueDate:"2026-09-27"},
-    {name:"Обувница Галицин",                        dueDate:""},
-    {name:"Шкаф Невкипелого",                        dueDate:"2026-10-11"}
-  ].map(p => ({...p, startDate: TODAY_ISO}));
+    {"name":"Кухня Хабибулина","order":0,"stage":9,"startDate":"2026-08-06","dueDate":"2026-09-24","workDays":35,"tasks":[{"done":false,"id":"mue10wd9ywi9g","text":"Собираем"},{"done":false,"id":"mue116txb038h","text":"Ждем доставку столешницы 25 сентября"},{"done":false,"id":"mue132958hq4y","text":"Режем столешницу"},{"done":false,"id":"mue13aqccyuo5","text":"Ждем фасады 25 сентября"},{"done":false,"id":"mue148s8tmzsk","text":"Комплектуем к отгрузке"},{"done":false,"id":"mue16958aqmng","text":"Проверить все доставки"}]},
+    {"name":"Обувница Москва","order":2,"stage":9,"startDate":"2026-08-10","dueDate":"2026-10-12","workDays":45,"tasks":[{"done":false,"id":"mue158dd8ehb1","text":"Ждем фасады до 1 октября"},{"done":false,"id":"mue15kj7oqtgh","text":"Собираем"},{"done":false,"id":"mue15rc51l8dp","text":"Комплектуем к отгрузке"},{"done":false,"id":"mue1614ekxdan","text":"Проверить все доставки"}]},
+    {"name":"Кухня майкоп","order":3,"stage":3,"startDate":"2026-09-23","dueDate":"2026-11-18","workDays":40,"tasks":[{"done":false,"id":"mue16ls0wlksg","text":"Делаем ТЗ"}]},
+    {"name":"Санузел Восточно-Кругликовская","order":4,"stage":9,"startDate":"2026-09-22","dueDate":"2026-09-27","tasks":[{"done":false,"id":"mue172qjxvsjg","text":"Готово к монтажу? Укомплектовано?"}]},
+    {"name":"Шкаф Восточно-Кругликовская (спальня)","order":5,"stage":9,"startDate":"2026-08-30","dueDate":"2026-09-30","color":"#DCE6D9","tasks":[{"done":false,"id":"mue1avxoup4ie","text":"Сборка"},{"done":false,"id":"mue1b8po6voqh","text":"Комплектуем к отгрузке"},{"done":false,"id":"mue1bfd4refzf","text":"Проверить все доставки"}]},
+    {"name":"Шкаф Невкипелого","order":6,"stage":7,"startDate":"2026-09-01","dueDate":"2026-10-20","workDays":35,"tasks":[{"done":false,"id":"mue1brxbwb7pf","text":"Ждем раскрой до 29 сентября"},{"done":false,"id":"mue1cqawojqln","text":"Проверить все доставки"}]},
+    {"name":"Шкаф-купе Москва","order":7,"stage":9,"startDate":"2026-08-10","dueDate":"2026-09-28","workDays":35,"tasks":[{"done":false,"id":"mue1cw1io9kzu","text":"Сборка"},{"done":false,"id":"mue1d2jykr1wr","text":"Проверить все доставки"},{"done":false,"id":"mue1dba4ebrm8","text":"Комплектуем к отгрузке"}]},
+    {"name":"Элегант Подоконник и Цоколь","order":8,"stage":3,"startDate":"2026-09-22","dueDate":"2026-10-07","color":"#EAD6D2","tasks":[{"done":false,"id":"mue10ht39jurw","text":"Срочно спроектировать !!!"}]},
+    {"name":"Кухня Коваль","order":9,"stage":1,"startDate":"2026-09-23","dueDate":"","tasks":[{"done":false,"id":"mue1ds40n0njb","text":"Ждем готовности ремонта до 30 сентября"}]},
+    {"name":"Обувница Галицин","order":10,"stage":1,"startDate":"2026-09-23","dueDate":"","tasks":[{"done":false,"id":"mue1iitsuqadg","text":"Пойти выбрать цвет и сделать тех задание до 30 сентября"}]},
+    {"name":"Кухня Городецкий","order":1,"stage":4,"startDate":"2026-09-11","dueDate":"2026-10-30","workDays":35,"color":"","tasks":[{"done":false,"id":"mue7l4p7a8n8z","text":"Проверка после проектирования"}]}
+  ];
 
   const grid = document.getElementById('grid');
   const emptyState = document.getElementById('emptyState');
@@ -853,9 +854,8 @@
       projects = snap.docs.map(d => ({id: d.id, ...d.data()}));
       if(projects.length === 0 && !seeded){
         seeded = true;
-        for(let i = 0; i < SEED_PROJECTS.length; i++){
-          const p = SEED_PROJECTS[i];
-          await fx.addDoc(colRef, {name: p.name, stage: 1, startDate: p.startDate, dueDate: p.dueDate, order: i});
+        for(const p of SEED_PROJECTS){
+          await fx.addDoc(colRef, p);
         }
         return; // следующий snapshot отрисует уже с данными
       }
@@ -869,7 +869,7 @@
     initFirebase();
   } else {
     banner.innerHTML = 'Firebase не настроен: изменения не будут сохраняться и не будут видны другим. Откройте файл и вставьте конфиг вашего проекта Firebase в начало script-блока.';
-    projects = SEED_PROJECTS.map((p,i) => ({id:'local-'+i, name:p.name, stage:1, startDate:p.startDate, dueDate:p.dueDate, order:i}));
+    projects = SEED_PROJECTS.map((p,i) => ({id:'local-'+i, ...p}));
     render();
   }
 </script>
