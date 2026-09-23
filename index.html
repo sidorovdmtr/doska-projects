@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Кубкрафтер — текущие заказы</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,560;9..144,680&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EDE7DA;
+    --surface:#F8F5EE;
+    --ink:#2A2521;
+    --ink-muted:#7A7060;
+    --line:#D9D0BC;
+    --accent:#3F5D54;
+    --accent-pale:#C9D3C6;
+    --warn:#B23A2E;
+    --warn-pale:#EAD3CE;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"IBM Plex Sans", sans-serif;
+    min-height:100vh;
+    padding:32px 28px 80px;
+  }
+  h1,h2,h3{font-family:"Fraunces", serif; font-weight:560; margin:0;}
+
+  header.top{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:16px;
+    max-width:1240px;
+    margin:0 auto 28px;
+    border-bottom:1px solid var(--line);
+    padding-bottom:18px;
+  }
+  header.top .mark{font-size:15px; color:var(--ink-muted); letter-spacing:.01em;}
+  header.top h1{font-size:26px; margin-top:2px;}
+  button.add-btn{
+    background:var(--ink);
+    color:var(--surface);
+    border:none;
+    font-family:"IBM Plex Sans", sans-serif;
+    font-size:14px;
+    font-weight:500;
+    padding:11px 18px;
+    cursor:pointer;
+    border-radius:3px;
+  }
+  button.add-btn:hover{background:var(--accent);}
+
+  .grid{
+    max-width:1240px;
+    margin:0 auto;
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(290px, 1fr));
+    gap:20px;
+  }
+
+  .card{
+    position:relative;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:2px;
+    padding:26px 22px 20px;
+  }
+  .card.dragging{ opacity:.45; }
+  .dot-btn{
+    position:absolute;
+    top:17px; left:15px;
+    width:11px; height:11px;
+    border-radius:50%;
+    background:var(--bg);
+    border:1.5px solid var(--line);
+    padding:0;
+    cursor:pointer;
+  }
+  .dot-btn:hover{border-color:var(--accent);}
+  .color-menu{
+    display:none;
+    position:absolute;
+    top:32px; left:14px;
+    z-index:5;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:7px;
+    gap:6px;
+    grid-template-columns:repeat(4, 18px);
+    box-shadow:0 3px 10px rgba(42,37,33,.12);
+  }
+  .color-menu.open{display:grid;}
+  .color-menu .swatch{
+    width:18px; height:18px;
+    border-radius:50%;
+    border:1px solid var(--line);
+    padding:0;
+    cursor:pointer;
+  }
+  .color-menu .swatch:hover{border-color:var(--ink);}
+  .card .top-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+    margin-left:22px;
+  }
+  .card h2{font-size:18px; line-height:1.25; font-weight:560; padding-right:4px;}
+  .drag-handle{
+    color:var(--ink-muted);
+    font-size:15px;
+    letter-spacing:1px;
+    cursor:grab;
+    line-height:1;
+    padding:2px 4px;
+    flex-shrink:0;
+    user-select:none;
+    touch-action:none;
+  }
+  .drag-handle:active{cursor:grabbing;}
+
+  .dates{
+    margin:14px 0 16px 22px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:13px;
+    color:var(--ink-muted);
+  }
+  .dates input[type=date]{
+    font-family:"IBM Plex Sans", sans-serif;
+    font-size:13px;
+    color:var(--ink);
+    background:transparent;
+    border:none;
+    border-bottom:1px dashed var(--line);
+    padding:1px 0;
+    width:104px;
+  }
+  .dates input[type=date]:focus{outline:none; border-bottom-color:var(--accent);}
+  .dates .arrow{color:var(--line);}
+
+  .stage-row{margin:0 0 14px 22px;}
+  .stage-select{
+    appearance:none;
+    -webkit-appearance:none;
+    font-family:"IBM Plex Sans", sans-serif;
+    font-size:12.5px;
+    font-weight:500;
+    color:var(--accent);
+    background:var(--accent-pale);
+    border:1px solid var(--accent);
+    border-radius:13px;
+    padding:5px 26px 5px 11px;
+    cursor:pointer;
+    background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="6"><path d="M0 0l5 6 5-6z" fill="%233F5D54"/></svg>');
+    background-repeat:no-repeat;
+    background-position:right 10px center;
+    max-width:100%;
+  }
+
+  .progress-wrap{margin-left:22px;}
+  .bar-track{
+    height:10px;
+    background:#EDE7DA;
+    border:1px solid var(--line);
+    border-radius:5px;
+    overflow:hidden;
+  }
+  .bar-fill{
+    height:100%;
+    border-radius:5px 0 0 5px;
+    min-width:3px;
+  }
+  .progress-note{
+    margin-top:7px;
+    font-size:12.5px;
+    color:var(--ink-muted);
+  }
+  .progress-note .pct{
+    font-weight:600;
+    color:var(--ink);
+  }
+  .progress-note.warn{color:var(--warn);}
+  .progress-note.missing{font-style:normal;}
+
+  .empty-state{
+    max-width:1240px; margin:60px auto; text-align:center;
+    color:var(--ink-muted); font-size:14px;
+  }
+
+  /* add-card */
+  .add-card{
+    background:var(--surface);
+    border:1px dashed var(--line);
+    border-radius:2px;
+    padding:22px;
+  }
+  .add-card h3{font-size:15px; margin-bottom:14px; font-weight:560;}
+  .add-card label{display:block; font-size:12.5px; color:var(--ink-muted); margin:10px 0 4px;}
+  .add-card input[type=text], .add-card input[type=date], .add-card select{
+    width:100%;
+    font-family:"IBM Plex Sans", sans-serif;
+    font-size:14px;
+    padding:8px 9px;
+    border:1px solid var(--line);
+    border-radius:3px;
+    background:var(--bg);
+    color:var(--ink);
+  }
+  .add-card .btn-row{display:flex; gap:10px; margin-top:16px;}
+  .add-card button{
+    flex:1;
+    font-family:"IBM Plex Sans", sans-serif;
+    font-size:13.5px;
+    font-weight:500;
+    padding:9px;
+    border-radius:3px;
+    cursor:pointer;
+    border:1px solid var(--line);
+    background:var(--bg);
+    color:var(--ink);
+  }
+  .add-card button.save{background:var(--ink); color:var(--surface); border-color:var(--ink);}
+  .add-card button.save:hover{background:var(--accent); border-color:var(--accent);}
+
+  .banner{
+    max-width:1240px; margin:0 auto 24px; padding:14px 18px;
+    background:var(--warn-pale); border:1px solid var(--warn);
+    color:var(--warn); font-size:13.5px; border-radius:3px;
+  }
+
+  @media (prefers-reduced-motion: no-preference){
+    .bar-fill{transition:width .4s ease;}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div>
+    <div class="mark">Кубкрафтер</div>
+    <h1>Текущие заказы</h1>
+  </div>
+  <button class="add-btn" id="openAddBtn">Добавить заказ</button>
+</header>
+
+<div id="banner"></div>
+<div class="grid" id="grid"></div>
+<div class="empty-state" id="emptyState" style="display:none;">Нет активных заказов — добавьте первый.</div>
+
+<script type="module">
+  // ====== НАСТРОЙКА FIREBASE ======
+  // Вставьте сюда конфиг из вашего проекта Firebase (Project settings → General → Your apps → Web app).
+  // Пока значения не заполнены — страница работает в демо-режиме без сохранения и без общего доступа.
+  const firebaseConfig = {
+    apiKey: "AIzaSyCbVFoap7xG21nw0fYh0Qvb7wH_rsTINt0",
+    authDomain: "doska-projects.firebaseapp.com",
+    projectId: "doska-projects",
+    storageBucket: "doska-projects.firebasestorage.app",
+    messagingSenderId: "565838014099",
+    appId: "1:565838014099:web:b3ddd51edb198142df8f66"
+  };
+  // =================================
+
+  const STAGES = [
+    "Договор и предоплата",
+    "Замер",
+    "Техзадание",
+    "Проектирование",
+    "Согласование проекта",
+    "Закупка материалов",
+    "Производство",
+    "Доставка в цех",
+    "Сборка",
+    "Доставка",
+    "Монтаж",
+    "Сдано"
+  ];
+  const DONE_STAGE = STAGES.length; // 12
+
+  const CARD_COLORS = [
+    {label:'Без цвета', value:null},
+    {label:'Шалфей',    value:'#DCE6D9'},
+    {label:'Небо',      value:'#D8E3E8'},
+    {label:'Песок',     value:'#EFE2C9'},
+    {label:'Роза',      value:'#EAD6D2'},
+    {label:'Слива',     value:'#E1D7E3'},
+    {label:'Глина',     value:'#E7CBB8'},
+    {label:'Мох',       value:'#CBD6C2'}
+  ];
+
+  const TODAY_ISO = new Date().toISOString().slice(0,10);
+  const SEED_PROJECTS = [
+    {name:"Шкаф Восточно-Кругликовская (спальня)", dueDate:"2026-09-27"},
+    {name:"Кухня Хабибулина",                       dueDate:"2026-09-30"},
+    {name:"Шкаф-купе Москва",                        dueDate:"2026-09-27"},
+    {name:"Обувница Москва",                         dueDate:"2026-10-04"},
+    {name:"Кухня Городецкий",                        dueDate:""},
+    {name:"Кухня Коваль",                            dueDate:""},
+    {name:"Санузел Восточно-Кругликовская",          dueDate:"2026-09-27"},
+    {name:"Обувница Галицин",                        dueDate:""},
+    {name:"Шкаф Невкипелого",                        dueDate:"2026-10-11"}
+  ].map(p => ({...p, startDate: TODAY_ISO}));
+
+  const grid = document.getElementById('grid');
+  const emptyState = document.getElementById('emptyState');
+  const banner = document.getElementById('banner');
+  const openAddBtn = document.getElementById('openAddBtn');
+
+  let db = null;
+  let fx = null; // firestore function bundle
+  let colRef = null;
+  const isConfigured = !Object.values(firebaseConfig).some(v => v.includes("ВСТАВЬТЕ"));
+
+  let projects = []; // {id, name, stage, startDate, dueDate}
+
+  function fmtDate(iso){
+    if(!iso) return null;
+    const [y,m,d] = iso.split('-');
+    return `${d}.${m}.${y.slice(2)}`;
+  }
+  function parseLocal(iso){
+    const [y,m,d] = iso.split('-').map(Number);
+    return new Date(y, m-1, d);
+  }
+  // Считает рабочие дни (пн–пт) строго между датами, не включая начальную и включая конечную.
+  function workingDaysBetween(from, to){
+    let count = 0;
+    const cur = new Date(from);
+    cur.setDate(cur.getDate()+1);
+    while(cur <= to){
+      const day = cur.getDay();
+      if(day !== 0 && day !== 6) count++;
+      cur.setDate(cur.getDate()+1);
+    }
+    return count;
+  }
+
+  function computeProgress(p){
+    if(!p.startDate || !p.dueDate){
+      return {mode:'missing'};
+    }
+    const start = parseLocal(p.startDate);
+    const due = parseLocal(p.dueDate);
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const totalWD = workingDaysBetween(start, due); // всего рабочих дней на проект
+    if(totalWD <= 0){
+      return {mode:'invalid'};
+    }
+    if(due < today){
+      return {mode:'overdue', daysOver: workingDaysBetween(due, today)};
+    }
+    const spentWD = workingDaysBetween(start, today); // сколько рабочих дней уже прошло
+    const daysLeft = workingDaysBetween(today, due);
+    const pct = Math.min(100, Math.max(0, (spentWD/totalWD)*100));
+    return {mode:'ok', pct, daysLeft};
+  }
+
+  let isDragging = false;
+
+  function render(){
+    if(isDragging) return;
+    const visible = projects
+      .filter(p => p.stage < DONE_STAGE)
+      .sort((a,b) => {
+        const ao = (a.order ?? 999999);
+        const bo = (b.order ?? 999999);
+        if(ao !== bo) return ao - bo;
+        return a.name.localeCompare(b.name, 'ru');
+      });
+
+    grid.innerHTML = '';
+    emptyState.style.display = visible.length ? 'none' : 'block';
+
+    visible.forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.dataset.id = p.id;
+      if(p.color) card.style.background = p.color;
+
+      const prog = computeProgress(p);
+      let barHtml, noteHtml;
+      if(prog.mode === 'missing'){
+        barHtml = `<div class="bar-track"><div class="bar-fill" style="width:3px;background:#C9C0AC;"></div></div>`;
+        noteHtml = `<div class="progress-note missing">Укажите даты начала и сдачи</div>`;
+      } else if(prog.mode === 'invalid'){
+        barHtml = `<div class="bar-track"><div class="bar-fill" style="width:3px;background:#C9C0AC;"></div></div>`;
+        noteHtml = `<div class="progress-note">Дата сдачи раньше даты начала</div>`;
+      } else if(prog.mode === 'overdue'){
+        barHtml = `<div class="bar-track"><div class="bar-fill" style="width:100%;background:#B23A2E;"></div></div>`;
+        noteHtml = `<div class="progress-note warn">Просрочен на ${prog.daysOver} рабочих ${dayWord(prog.daysOver)}</div>`;
+      } else {
+        const pctSafe = Number.isFinite(prog.pct) ? Math.round(prog.pct) : 0;
+        barHtml = `<div class="bar-track"><div class="bar-fill" style="width:${pctSafe}%;background:#D9782B;"></div></div>`;
+        noteHtml = `<div class="progress-note"><span class="pct">${pctSafe}%</span> · ${prog.daysLeft === 0 ? 'сдать сегодня' : `осталось ${prog.daysLeft} рабочих ${dayWord(prog.daysLeft)}`}</div>`;
+      }
+
+      card.innerHTML = `
+        <button class="dot-btn" data-action="toggle-color" title="Цвет карточки" ${p.color?`style="background:${p.color}"`:''}></button>
+        <div class="color-menu">
+          ${CARD_COLORS.map(c => `<button class="swatch" data-action="set-color" data-color="${c.value||''}" title="${c.label}" style="background:${c.value||'var(--surface)'}"></button>`).join('')}
+        </div>
+        <div class="top-row">
+          <h2>${escapeHtml(p.name)}</h2>
+          <span class="drag-handle" title="Перетащить">⠿</span>
+        </div>
+        <div class="dates">
+          <input type="date" value="${p.startDate||''}" data-field="startDate">
+          <span class="arrow">→</span>
+          <input type="date" value="${p.dueDate||''}" data-field="dueDate">
+        </div>
+        <div class="stage-row">
+          <select class="stage-select" data-field="stage">
+            ${STAGES.map((s,i)=>`<option value="${i+1}" ${p.stage===i+1?'selected':''}>${i+1}. ${s}</option>`).join('')}
+          </select>
+        </div>
+        <div class="progress-wrap">
+          ${barHtml}
+          ${noteHtml}
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  function dayWord(n){
+    const abs = Math.abs(n) % 100;
+    const last = abs % 10;
+    if(abs >= 11 && abs <= 14) return 'дней';
+    if(last === 1) return 'день';
+    if(last >= 2 && last <= 4) return 'дня';
+    return 'дней';
+  }
+
+  function escapeHtml(s){
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  // ---- event delegation ----
+  grid.addEventListener('change', async (e) => {
+    const card = e.target.closest('.card');
+    if(!card) return;
+    const id = card.dataset.id;
+    const field = e.target.dataset.field;
+    if(!field) return;
+    let value = e.target.value;
+    if(field === 'stage') value = Number(value);
+    await updateProject(id, {[field]: value});
+  });
+
+  function closeAllColorMenus(){
+    document.querySelectorAll('.color-menu.open').forEach(m => m.classList.remove('open'));
+  }
+
+  grid.addEventListener('click', async (e) => {
+    const toggleBtn = e.target.closest('[data-action="toggle-color"]');
+    if(toggleBtn){
+      const menu = toggleBtn.closest('.card').querySelector('.color-menu');
+      const wasOpen = menu.classList.contains('open');
+      closeAllColorMenus();
+      if(!wasOpen) menu.classList.add('open');
+      return;
+    }
+    const swatch = e.target.closest('[data-action="set-color"]');
+    if(swatch){
+      const card = swatch.closest('.card');
+      const id = card.dataset.id;
+      const color = swatch.dataset.color || '';
+      closeAllColorMenus();
+      await updateProject(id, {color});
+      return;
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    if(!e.target.closest('.dot-btn') && !e.target.closest('.color-menu')){
+      closeAllColorMenus();
+    }
+  });
+
+  // ---- drag & drop reorder (Pointer Events — работает и мышью, и пальцем) ----
+  grid.addEventListener('pointerdown', (e) => {
+    const handle = e.target.closest('.drag-handle');
+    if(!handle) return;
+    const card = handle.closest('.card');
+    if(!card) return;
+    e.preventDefault();
+    card.classList.add('dragging');
+    isDragging = true;
+
+    const onMove = (ev) => {
+      const after = getDragAfterElement(grid, ev.clientX, ev.clientY);
+      if(after == null){
+        grid.appendChild(card);
+      } else if(after !== card){
+        grid.insertBefore(card, after);
+      }
+    };
+    const onUp = async () => {
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onUp);
+      document.removeEventListener('pointercancel', onUp);
+      card.classList.remove('dragging');
+      isDragging = false;
+      const ids = [...grid.querySelectorAll('.card')].map(c => c.dataset.id);
+      for(let i = 0; i < ids.length; i++){
+        const p = projects.find(x => x.id === ids[i]);
+        if(p && p.order !== i){
+          p.order = i;
+          await updateProject(ids[i], {order: i});
+        }
+      }
+    };
+    // Слушаем на document, а не на самой карточке: как только карточка
+    // переставляется под курсором, события на ней теряются, а на document — нет.
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+    document.addEventListener('pointercancel', onUp);
+  });
+
+  function getDragAfterElement(container, x, y){
+    const cards = [...container.querySelectorAll('.card:not(.dragging)')];
+    for(const card of cards){
+      const box = card.getBoundingClientRect();
+      if(y < box.top) return card;
+      if(y >= box.top && y <= box.bottom && x < box.left + box.width/2) return card;
+    }
+    return null;
+  }
+
+  // ---- add form ----
+  openAddBtn.addEventListener('click', () => {
+    if(document.getElementById('addForm')) return;
+    const card = document.createElement('div');
+    card.className = 'add-card';
+    card.id = 'addForm';
+    card.innerHTML = `
+      <h3>Новый заказ</h3>
+      <label>Название</label>
+      <input type="text" id="newName" placeholder="Например: Кухня Иванова">
+      <label>Дата начала</label>
+      <input type="date" id="newStart">
+      <label>Дата сдачи</label>
+      <input type="date" id="newDue">
+      <div class="btn-row">
+        <button type="button" id="cancelAdd">Отмена</button>
+        <button type="button" class="save" id="saveAdd">Добавить</button>
+      </div>
+    `;
+    grid.prepend(card);
+    document.getElementById('newName').focus();
+    document.getElementById('cancelAdd').onclick = () => card.remove();
+    document.getElementById('saveAdd').onclick = async () => {
+      const name = document.getElementById('newName').value.trim();
+      if(!name){ document.getElementById('newName').focus(); return; }
+      const startDate = document.getElementById('newStart').value;
+      const dueDate = document.getElementById('newDue').value;
+      await addProject({name, startDate, dueDate, stage: 1, order: projects.length});
+      card.remove();
+    };
+  });
+
+  // ---- хранилище (Firebase Firestore, либо демо-режим без сохранения) ----
+  async function addProject(data){
+    if(!isConfigured){
+      data = {...data, id: 'local-' + Date.now()};
+      projects.push(data);
+      render();
+      return;
+    }
+    await fx.addDoc(colRef, data);
+  }
+  async function updateProject(id, patch){
+    if(!isConfigured){
+      const p = projects.find(x => x.id === id);
+      if(p) Object.assign(p, patch);
+      render();
+      return;
+    }
+    await fx.updateDoc(fx.doc(db, 'projects', id), patch);
+  }
+
+  async function initFirebase(){
+    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+    const fs = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+    const app = initializeApp(firebaseConfig);
+    db = fs.getFirestore(app);
+    fx = fs;
+    colRef = fs.collection(db, 'projects');
+
+    let seeded = false;
+    fs.onSnapshot(colRef, async (snap) => {
+      projects = snap.docs.map(d => ({id: d.id, ...d.data()}));
+      if(projects.length === 0 && !seeded){
+        seeded = true;
+        for(let i = 0; i < SEED_PROJECTS.length; i++){
+          const p = SEED_PROJECTS[i];
+          await fx.addDoc(colRef, {name: p.name, stage: 1, startDate: p.startDate, dueDate: p.dueDate, order: i});
+        }
+        return; // следующий snapshot отрисует уже с данными
+      }
+      render();
+    }, (err) => {
+      banner.innerHTML = 'Не удалось подключиться к базе данных: ' + err.message + '. Проверьте конфиг Firebase и правила доступа Firestore.';
+    });
+  }
+
+  if(isConfigured){
+    initFirebase();
+  } else {
+    banner.innerHTML = 'Firebase не настроен: изменения не будут сохраняться и не будут видны другим. Откройте файл и вставьте конфиг вашего проекта Firebase в начало script-блока (см. инструкцию, которая шла вместе с файлом).';
+    projects = SEED_PROJECTS.map((p,i) => ({id:'local-'+i, name:p.name, stage:1, startDate:p.startDate, dueDate:p.dueDate, order:i}));
+    render();
+  }
+</script>
+</body>
+</html>
