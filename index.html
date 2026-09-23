@@ -147,6 +147,27 @@
   }
   .dates input[type=date]:focus{outline:none; border-bottom-color:var(--accent);}
   .dates .arrow{color:var(--line);}
+  .dates{margin-bottom:8px;}
+  .workdays{
+    margin:0 0 16px 22px;
+    display:flex; align-items:center; gap:7px;
+    font-size:13px; color:var(--ink-muted);
+  }
+  .workdays input{
+    width:52px;
+    font-family:"IBM Plex Sans", sans-serif;
+    font-size:13px; font-weight:600;
+    color:var(--ink);
+    text-align:center;
+    background:rgba(255,255,255,.45);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:3px 4px;
+    -moz-appearance:textfield;
+  }
+  .workdays input::-webkit-outer-spin-button,
+  .workdays input::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}
+  .workdays input:focus{outline:none; border-color:var(--accent);}
 
   .stage-row{margin:0 0 14px 22px;}
   .stage-select{
@@ -238,6 +259,52 @@
     color:var(--warn); font-size:13.5px; border-radius:3px;
   }
 
+  /* задачи */
+  .tasks{
+    margin:16px 0 0 22px;
+    padding-top:12px;
+    border-top:1px solid var(--line);
+  }
+  .tasks-label{
+    font-size:11.5px; text-transform:uppercase; letter-spacing:.06em;
+    color:var(--ink-muted); margin-bottom:6px;
+  }
+  .task{
+    display:flex; align-items:flex-start; gap:8px;
+    padding:3px 0;
+  }
+  .task input[type=checkbox]{
+    margin:4px 0 0; width:14px; height:14px; flex-shrink:0;
+    accent-color:var(--accent); cursor:pointer;
+  }
+  .task-text, .task-new{
+    flex:1; min-width:0;
+    font-family:"IBM Plex Sans", sans-serif;
+    font-size:13.5px; line-height:1.4;
+    color:var(--ink);
+    background:transparent;
+    border:none;
+    border-bottom:1px solid transparent;
+    padding:1px 0;
+    resize:none;
+    overflow:hidden;
+  }
+  .task-text:focus, .task-new:focus{outline:none; border-bottom-color:var(--accent);}
+  .task.done .task-text{text-decoration:line-through; color:var(--ink-muted);}
+  .task-del{
+    background:none; border:none; padding:0 2px; cursor:pointer;
+    color:var(--ink-muted); font-size:16px; line-height:1.2;
+    opacity:0; flex-shrink:0;
+  }
+  .task:hover .task-del, .task-del:focus{opacity:1;}
+  .task-del:hover{color:var(--warn);}
+  @media (hover:none){ .task-del{opacity:.6;} }
+  .task-new{
+    display:block; width:100%; margin-top:4px;
+    border-bottom:1px dashed var(--line);
+  }
+  .task-new::placeholder{color:var(--ink-muted);}
+
   @media (prefers-reduced-motion: no-preference){
     .bar-fill{transition:width .4s ease;}
   }
@@ -258,9 +325,6 @@
 <div class="empty-state" id="emptyState" style="display:none;">Нет активных заказов — добавьте первый.</div>
 
 <script type="module">
-  // ====== НАСТРОЙКА FIREBASE ======
-  // Вставьте сюда конфиг из вашего проекта Firebase (Project settings → General → Your apps → Web app).
-  // Пока значения не заполнены — страница работает в демо-режиме без сохранения и без общего доступа.
   const firebaseConfig = {
     apiKey: "AIzaSyCbVFoap7xG21nw0fYh0Qvb7wH_rsTINt0",
     authDomain: "doska-projects.firebaseapp.com",
@@ -269,7 +333,6 @@
     messagingSenderId: "565838014099",
     appId: "1:565838014099:web:b3ddd51edb198142df8f66"
   };
-  // =================================
 
   const STAGES = [
     "Договор и предоплата",
@@ -345,6 +408,30 @@
     return count;
   }
 
+  function toIso(d){
+    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), dd = String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${dd}`;
+  }
+  // Дата, до которой укладывается N рабочих дней после даты начала (та же логика, что в workingDaysBetween)
+  function addWorkingDays(startIso, n){
+    const cur = parseLocal(startIso);
+    let left = n;
+    while(left > 0){
+      cur.setDate(cur.getDate()+1);
+      const day = cur.getDay();
+      if(day !== 0 && day !== 6) left--;
+    }
+    return toIso(cur);
+  }
+  function effectiveWorkDays(p){
+    if(Number.isFinite(p.workDays) && p.workDays > 0) return p.workDays;
+    if(p.startDate && p.dueDate){
+      const n = workingDaysBetween(parseLocal(p.startDate), parseLocal(p.dueDate));
+      return n > 0 ? n : null;
+    }
+    return null;
+  }
+
   function computeProgress(p){
     if(!p.startDate || !p.dueDate){
       return {mode:'missing'};
@@ -367,6 +454,7 @@
   }
 
   let isDragging = false;
+  let pendingFocusCardId = null;
 
   function render(){
     if(isDragging) return;
@@ -378,6 +466,20 @@
         if(ao !== bo) return ao - bo;
         return a.name.localeCompare(b.name, 'ru');
       });
+
+    // сохраняем недописанные задачи и фокус, чтобы обновление данных их не стёрло
+    const drafts = {};
+    grid.querySelectorAll('.card').forEach(c => {
+      const inp = c.querySelector('.task-new');
+      if(inp && inp.value) drafts[c.dataset.id] = inp.value;
+    });
+    const act = document.activeElement;
+    let focusCardId = pendingFocusCardId, focusPos = null;
+    if(act && act.classList && act.classList.contains('task-new') && grid.contains(act)){
+      focusCardId = act.closest('.card').dataset.id;
+      focusPos = act.selectionStart;
+    }
+    pendingFocusCardId = null;
 
     grid.innerHTML = '';
     emptyState.style.display = visible.length ? 'none' : 'block';
@@ -419,6 +521,11 @@
           <span class="arrow">→</span>
           <input type="date" value="${p.dueDate||''}" data-field="dueDate">
         </div>
+        <div class="workdays">
+          <span>Срок изготовления</span>
+          <input type="number" min="1" step="1" inputmode="numeric" data-field="workDays" value="${effectiveWorkDays(p) ?? ''}" placeholder="—">
+          <span>раб. ${dayWord(effectiveWorkDays(p) ?? 5)}</span>
+        </div>
         <div class="stage-row">
           <select class="stage-select" data-field="stage">
             ${STAGES.map((s,i)=>`<option value="${i+1}" ${p.stage===i+1?'selected':''}>${i+1}. ${s}</option>`).join('')}
@@ -428,9 +535,31 @@
           ${barHtml}
           ${noteHtml}
         </div>
+        <div class="tasks">
+          <div class="tasks-label">Задачи</div>
+          ${(p.tasks||[]).map(t => `
+            <div class="task ${t.done?'done':''}" data-task-id="${escapeAttr(t.id)}">
+              <input type="checkbox" data-action="toggle-task" ${t.done?'checked':''} title="Отметить выполненной">
+              <textarea class="task-text" rows="1" data-action="edit-task">${escapeHtml(t.text)}</textarea>
+              <button class="task-del" data-action="del-task" title="Удалить задачу">×</button>
+            </div>`).join('')}
+          <input type="text" class="task-new" placeholder="+ Новая задача (Enter)">
+        </div>
       `;
       grid.appendChild(card);
+      const newInp = card.querySelector('.task-new');
+      if(drafts[p.id]) newInp.value = drafts[p.id];
+      if(focusCardId === p.id){
+        newInp.focus();
+        if(focusPos != null) newInp.setSelectionRange(focusPos, focusPos);
+      }
     });
+    grid.querySelectorAll('.task-text').forEach(autoGrow);
+  }
+
+  function autoGrow(el){
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
   }
 
   function dayWord(n){
@@ -440,6 +569,28 @@
     if(last === 1) return 'день';
     if(last >= 2 && last <= 4) return 'дня';
     return 'дней';
+  }
+
+  function escapeAttr(s){
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  }
+  function newTaskId(){
+    return Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+  }
+  function getTasks(id){
+    const p = projects.find(x => x.id === id);
+    return p ? [...(p.tasks || [])] : [];
+  }
+  async function saveTasks(id, tasks){
+    const p = projects.find(x => x.id === id);
+    if(p) p.tasks = tasks;
+    await updateProject(id, {tasks});
+  }
+  async function addTask(cardId, text){
+    const tasks = getTasks(cardId);
+    tasks.push({id:newTaskId(), text, done:false});
+    pendingFocusCardId = cardId;
+    await saveTasks(cardId, tasks);
   }
 
   function escapeHtml(s){
@@ -453,11 +604,82 @@
     const card = e.target.closest('.card');
     if(!card) return;
     const id = card.dataset.id;
+    const taskEl = e.target.closest('.task');
+    if(taskEl){
+      const tid = taskEl.dataset.taskId;
+      let tasks = getTasks(id);
+      if(e.target.dataset.action === 'toggle-task'){
+        tasks = tasks.map(t => t.id === tid ? {...t, done: e.target.checked} : t);
+      } else if(e.target.dataset.action === 'edit-task'){
+        const text = e.target.value.trim();
+        tasks = text ? tasks.map(t => t.id === tid ? {...t, text} : t)
+                     : tasks.filter(t => t.id !== tid);
+      } else return;
+      await saveTasks(id, tasks);
+      return;
+    }
     const field = e.target.dataset.field;
     if(!field) return;
+    if(field === 'startDate' || field === 'dueDate' || field === 'workDays'){
+      const p = projects.find(x => x.id === id) || {};
+      const patch = {};
+      if(field === 'workDays'){
+        const n = parseInt(e.target.value, 10);
+        if(!Number.isFinite(n) || n <= 0){
+          patch.workDays = null;
+        } else {
+          patch.workDays = n;
+          if(p.startDate) patch.dueDate = addWorkingDays(p.startDate, n);
+        }
+      } else if(field === 'startDate'){
+        patch.startDate = e.target.value;
+        const n = effectiveWorkDays(p);
+        if(patch.startDate && n){
+          patch.dueDate = addWorkingDays(patch.startDate, n);
+          patch.workDays = n;
+        }
+      } else { // dueDate — пересчитываем срок
+        patch.dueDate = e.target.value;
+        if(p.startDate && patch.dueDate){
+          const n = workingDaysBetween(parseLocal(p.startDate), parseLocal(patch.dueDate));
+          patch.workDays = n > 0 ? n : null;
+        }
+      }
+      Object.assign(p, patch);
+      await updateProject(id, patch);
+      return;
+    }
     let value = e.target.value;
     if(field === 'stage') value = Number(value);
     await updateProject(id, {[field]: value});
+  });
+
+  grid.addEventListener('keydown', async (e) => {
+    if(e.key !== 'Enter' || e.isComposing) return;
+    if(e.target.classList.contains('task-new')){
+      e.preventDefault();
+      const text = e.target.value.trim();
+      if(!text) return;
+      e.target.value = '';
+      await addTask(e.target.closest('.card').dataset.id, text);
+    } else if(e.target.classList.contains('task-text') && !e.shiftKey){
+      e.preventDefault();
+      e.target.blur(); // сохранит правку через change
+    }
+  });
+  grid.addEventListener('input', (e) => {
+    if(e.target.classList.contains('task-text')) autoGrow(e.target);
+  });
+  grid.addEventListener('focusout', async (e) => {
+    if(!e.target.classList.contains('task-new')) return;
+    const text = e.target.value.trim();
+    if(!text) return;
+    const card = e.target.closest('.card');
+    if(!card) return;
+    e.target.value = '';
+    const tasks = getTasks(card.dataset.id);
+    tasks.push({id:newTaskId(), text, done:false});
+    await saveTasks(card.dataset.id, tasks);
   });
 
   function closeAllColorMenus(){
@@ -471,6 +693,13 @@
       const wasOpen = menu.classList.contains('open');
       closeAllColorMenus();
       if(!wasOpen) menu.classList.add('open');
+      return;
+    }
+    const delBtn = e.target.closest('[data-action="del-task"]');
+    if(delBtn){
+      const id = delBtn.closest('.card').dataset.id;
+      const tid = delBtn.closest('.task').dataset.taskId;
+      await saveTasks(id, getTasks(id).filter(t => t.id !== tid));
       return;
     }
     const swatch = e.target.closest('[data-action="set-color"]');
@@ -552,7 +781,9 @@
       <input type="text" id="newName" placeholder="Например: Кухня Иванова">
       <label>Дата начала</label>
       <input type="date" id="newStart">
-      <label>Дата сдачи</label>
+      <label>Срок изготовления, раб. дней</label>
+      <input type="text" inputmode="numeric" id="newDays" placeholder="Например: 20">
+      <label>Дата сдачи <span style="opacity:.7">(посчитается сама, можно поправить)</span></label>
       <input type="date" id="newDue">
       <div class="btn-row">
         <button type="button" id="cancelAdd">Отмена</button>
@@ -561,13 +792,30 @@
     `;
     grid.prepend(card);
     document.getElementById('newName').focus();
+    const syncNewDue = () => {
+      const st = document.getElementById('newStart').value;
+      const n = parseInt(document.getElementById('newDays').value, 10);
+      if(st && n > 0) document.getElementById('newDue').value = addWorkingDays(st, n);
+    };
+    document.getElementById('newStart').addEventListener('change', syncNewDue);
+    document.getElementById('newDays').addEventListener('input', syncNewDue);
+    document.getElementById('newDue').addEventListener('change', () => {
+      const st = document.getElementById('newStart').value;
+      const du = document.getElementById('newDue').value;
+      if(st && du){
+        const n = workingDaysBetween(parseLocal(st), parseLocal(du));
+        document.getElementById('newDays').value = n > 0 ? n : '';
+      }
+    });
     document.getElementById('cancelAdd').onclick = () => card.remove();
     document.getElementById('saveAdd').onclick = async () => {
       const name = document.getElementById('newName').value.trim();
       if(!name){ document.getElementById('newName').focus(); return; }
       const startDate = document.getElementById('newStart').value;
       const dueDate = document.getElementById('newDue').value;
-      await addProject({name, startDate, dueDate, stage: 1, order: projects.length});
+      const nd = parseInt(document.getElementById('newDays').value, 10);
+      const workDays = nd > 0 ? nd : null;
+      await addProject({name, startDate, dueDate, workDays, stage: 1, order: projects.length});
       card.remove();
     };
   });
@@ -620,7 +868,7 @@
   if(isConfigured){
     initFirebase();
   } else {
-    banner.innerHTML = 'Firebase не настроен: изменения не будут сохраняться и не будут видны другим. Откройте файл и вставьте конфиг вашего проекта Firebase в начало script-блока (см. инструкцию, которая шла вместе с файлом).';
+    banner.innerHTML = 'Firebase не настроен: изменения не будут сохраняться и не будут видны другим. Откройте файл и вставьте конфиг вашего проекта Firebase в начало script-блока.';
     projects = SEED_PROJECTS.map((p,i) => ({id:'local-'+i, name:p.name, stage:1, startDate:p.startDate, dueDate:p.dueDate, order:i}));
     render();
   }
