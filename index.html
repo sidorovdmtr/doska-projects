@@ -1317,8 +1317,19 @@
       projects = snap.docs.map(d => ({id: d.id, ...d.data()}));
       if(projects.length === 0 && !seeded){
         seeded = true;
-        for(const p of SEED_PROJECTS){
-          await fx.addDoc(colRef, p);
+        // Блокировка через транзакцию: если открыто несколько вкладок одновременно,
+        // засеет данные только та, что первой выиграет транзакцию.
+        const lockRef = fx.doc(db, 'meta', 'seedLock');
+        const canSeed = await fx.runTransaction(db, async (tx) => {
+          const lockSnap = await tx.get(lockRef);
+          if(lockSnap.exists()) return false;
+          tx.set(lockRef, {at: Date.now()});
+          return true;
+        });
+        if(canSeed){
+          for(const p of SEED_PROJECTS){
+            await fx.addDoc(colRef, p);
+          }
         }
         return; // следующий snapshot отрисует уже с данными
       }
