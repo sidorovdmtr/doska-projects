@@ -114,6 +114,30 @@
     margin-left:22px;
   }
   .card h2{font-size:18px; line-height:1.25; font-weight:560; padding-right:4px;}
+  .card-actions{display:flex; align-items:center; gap:2px; flex-shrink:0;}
+  .menu-btn{
+    background:none; border:none; color:var(--ink-muted);
+    font-size:17px; line-height:1; cursor:pointer; padding:2px 5px;
+  }
+  .menu-btn:hover{color:var(--ink);}
+  .card-menu{
+    display:none; position:absolute; top:38px; right:14px; z-index:6;
+    background:var(--surface); border:1px solid var(--line); border-radius:4px;
+    min-width:170px; padding:6px; box-shadow:0 4px 14px rgba(42,37,33,.14);
+  }
+  .card-menu.open{display:block;}
+  .card-menu button{
+    display:block; width:100%; text-align:left; background:none; border:none;
+    font-family:"IBM Plex Sans", sans-serif; font-size:13px; color:var(--ink);
+    padding:7px 9px; border-radius:3px; cursor:pointer;
+  }
+  .card-menu button:hover{background:var(--bg);}
+  .rename-input{
+    font-family:"Fraunces", serif; font-weight:560; font-size:18px;
+    color:var(--ink); background:var(--bg); border:1px solid var(--accent);
+    border-radius:3px; padding:2px 6px; width:100%;
+  }
+  .rename-input:focus{outline:none;}
   .drag-handle{
     color:var(--ink-muted);
     font-size:15px;
@@ -308,6 +332,111 @@
   @media (prefers-reduced-motion: no-preference){
     .bar-fill{transition:width .4s ease;}
   }
+
+  /* ---- секции ниже карточек ---- */
+  .section-block{max-width:1240px; margin:56px auto 0;}
+  .section-head{
+    display:flex; align-items:center; justify-content:space-between;
+    flex-wrap:wrap; gap:14px;
+    border-bottom:1px solid var(--line);
+    padding-bottom:14px; margin-bottom:20px;
+  }
+  .section-head h2{font-size:19px;}
+
+  .filter-wrap{position:relative;}
+  .zoom-wrap{display:flex; gap:4px;}
+  .zoom-btn{
+    width:30px; height:30px;
+    background:var(--surface); border:1px solid var(--line); color:var(--ink);
+    font-size:16px; font-weight:600; border-radius:3px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; line-height:1;
+  }
+  .zoom-btn:hover{border-color:var(--accent);}
+  .zoom-btn:active{background:var(--bg);}
+  .filter-btn{
+    background:var(--surface); border:1px solid var(--line); color:var(--ink);
+    font-family:"IBM Plex Sans", sans-serif; font-size:13px; font-weight:500;
+    padding:8px 14px; border-radius:3px; cursor:pointer;
+  }
+  .filter-btn:hover{border-color:var(--accent);}
+  .filter-menu{
+    display:none; position:absolute; top:calc(100% + 6px); right:0; z-index:6;
+    background:var(--surface); border:1px solid var(--line); border-radius:4px;
+    min-width:250px; padding:6px; box-shadow:0 4px 14px rgba(42,37,33,.14);
+  }
+  .filter-menu.open{display:block;}
+  .filter-menu button{
+    display:block; width:100%; text-align:left; background:none; border:none;
+    font-family:"IBM Plex Sans", sans-serif; font-size:13px; color:var(--ink);
+    padding:8px 10px; border-radius:3px; cursor:pointer;
+  }
+  .filter-menu button:hover{background:var(--bg);}
+  .filter-menu button.active{color:var(--accent); font-weight:600;}
+
+  /* ---- диаграмма Ганта ---- */
+  .gantt-scroll{overflow-x:auto; padding-bottom:8px;}
+  .gantt-chart{position:relative; width:max-content;}
+  .gantt-empty{font-size:13.5px; color:var(--ink-muted); padding:20px 0;}
+  .gantt-header-row{display:flex; height:24px; margin-bottom:4px;}
+  .gantt-header-spacer{width:190px; flex-shrink:0; position:sticky; left:0; background:var(--bg); z-index:3;}
+  .gantt-header-track{position:relative;}
+  .gantt-tick{position:absolute; top:0; bottom:-6px; border-left:1px dashed var(--line);}
+  .gantt-tick span{position:absolute; top:0; left:4px; font-size:10.5px; color:var(--ink-muted); white-space:nowrap;}
+  .gantt-row{display:flex; align-items:center; height:34px; border-bottom:1px solid var(--line);}
+  .gantt-row:last-child{border-bottom:none;}
+  .gantt-label{
+    position:sticky; left:0; z-index:2;
+    width:190px; flex-shrink:0;
+    background:var(--bg);
+    font-size:12.5px; padding-right:12px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .gantt-track{position:relative; height:100%;}
+  .gantt-bar{
+    position:absolute; top:7px; height:20px; border-radius:4px;
+    opacity:.92; cursor:default;
+  }
+  .gantt-nodate{position:absolute; top:9px; left:8px; font-size:11.5px; color:var(--ink-muted); font-style:italic;}
+  .gantt-today{position:absolute; top:-24px; bottom:0; width:2px; background:var(--warn); z-index:1; opacity:.7;}
+
+  /* ---- доска задач ---- */
+  .tasks-board{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(240px,1fr));
+    gap:16px;
+  }
+  .board-col{
+    background:var(--surface); border:1px solid var(--line); border-radius:3px;
+    padding:14px; min-height:120px;
+  }
+  .board-col-title{
+    font-size:11.5px; text-transform:uppercase; letter-spacing:.06em;
+    color:var(--ink-muted); margin-bottom:10px; padding-bottom:8px;
+    border-bottom:1px solid var(--line);
+  }
+  .board-col-body{min-height:60px; display:flex; flex-direction:column; gap:8px; padding-left:38px;}
+  .board-empty{font-size:12.5px; color:var(--ink-muted); font-style:italic; padding:4px 0;}
+  .board-task{
+    position:relative;
+    background:var(--bg); border:1px solid var(--line); border-radius:3px;
+    padding:9px 10px; cursor:grab; touch-action:none;
+    display:flex; align-items:flex-start; gap:8px; flex-wrap:wrap;
+  }
+  .board-task-num{
+    position:absolute; left:-34px; top:50%; transform:translateY(-50%);
+    width:18px; text-align:right;
+    font-size:11px; font-weight:600; color:var(--ink-muted);
+  }
+  .board-task:active{cursor:grabbing;}
+  .board-task.dragging{opacity:.4;}
+  .board-task input[type=checkbox]{margin-top:2px; accent-color:var(--accent); cursor:pointer; flex-shrink:0;}
+  .board-task-text{flex:1; min-width:100px; font-size:13px; line-height:1.4;}
+  .board-task.done .board-task-text{text-decoration:line-through; color:var(--ink-muted);}
+  .board-task-tag{
+    font-size:10.5px; font-weight:600; padding:2px 7px; border-radius:9px;
+    background:var(--accent-pale); color:var(--ink); white-space:nowrap;
+    flex-shrink:0;
+  }
 </style>
 </head>
 <body>
@@ -323,6 +452,56 @@
 <div id="banner"></div>
 <div class="grid" id="grid"></div>
 <div class="empty-state" id="emptyState" style="display:none;">Нет активных заказов — добавьте первый.</div>
+
+<section class="section-block" id="ganttSection">
+  <div class="section-head">
+    <h2>Диаграмма Ганта</h2>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <div class="zoom-wrap">
+        <button class="zoom-btn" id="ganttZoomOut" title="Уменьшить масштаб">−</button>
+        <button class="zoom-btn" id="ganttZoomIn" title="Увеличить масштаб">+</button>
+      </div>
+      <div class="filter-wrap">
+      <button class="filter-btn" id="ganttFilterBtn">Сортировка: <span id="ganttFilterLabel">как в карточках</span> ▾</button>
+      <div class="filter-menu" id="ganttFilterMenu">
+        <button data-sort="manual">Как в карточках (вручную)</button>
+        <button data-sort="due-asc">Срочность — сначала горящие</button>
+        <button data-sort="due-desc">Срочность — сначала дальние</button>
+        <button data-sort="dur-asc">Длительность — сначала короткие</button>
+        <button data-sort="dur-desc">Длительность — сначала длинные</button>
+        <button data-sort="stage-asc">Стадия — сначала ранние</button>
+      </div>
+      </div>
+    </div>
+  </div>
+  <div class="gantt-scroll">
+    <div class="gantt-chart" id="ganttChart"></div>
+  </div>
+</section>
+
+<section class="section-block" id="tasksBoardSection">
+  <div class="section-head">
+    <h2>Задачи по исполнителям</h2>
+  </div>
+  <div class="tasks-board" id="tasksBoard">
+    <div class="board-col" data-zone="unassigned">
+      <div class="board-col-title">Нераспределённые задачи</div>
+      <div class="board-col-body" data-zone-body="unassigned"></div>
+    </div>
+    <div class="board-col" data-zone="workshop">
+      <div class="board-col-title">Цех</div>
+      <div class="board-col-body" data-zone-body="workshop"></div>
+    </div>
+    <div class="board-col" data-zone="office">
+      <div class="board-col-title">Офис</div>
+      <div class="board-col-body" data-zone-body="office"></div>
+    </div>
+    <div class="board-col" data-zone="contractors">
+      <div class="board-col-title">Подрядчики</div>
+      <div class="board-col-body" data-zone-body="contractors"></div>
+    </div>
+  </div>
+</section>
 
 <script type="module">
   const firebaseConfig = {
@@ -361,19 +540,8 @@
     {label:'Мох',       value:'#CBD6C2'}
   ];
 
-  const SEED_PROJECTS = [
-    {"name":"Кухня Хабибулина","order":0,"stage":9,"startDate":"2026-08-06","dueDate":"2026-09-24","workDays":35,"tasks":[{"done":false,"id":"mue10wd9ywi9g","text":"Собираем"},{"done":false,"id":"mue116txb038h","text":"Ждем доставку столешницы 25 сентября"},{"done":false,"id":"mue132958hq4y","text":"Режем столешницу"},{"done":false,"id":"mue13aqccyuo5","text":"Ждем фасады 25 сентября"},{"done":false,"id":"mue148s8tmzsk","text":"Комплектуем к отгрузке"},{"done":false,"id":"mue16958aqmng","text":"Проверить все доставки"}]},
-    {"name":"Обувница Москва","order":2,"stage":9,"startDate":"2026-08-10","dueDate":"2026-10-12","workDays":45,"tasks":[{"done":false,"id":"mue158dd8ehb1","text":"Ждем фасады до 1 октября"},{"done":false,"id":"mue15kj7oqtgh","text":"Собираем"},{"done":false,"id":"mue15rc51l8dp","text":"Комплектуем к отгрузке"},{"done":false,"id":"mue1614ekxdan","text":"Проверить все доставки"}]},
-    {"name":"Кухня майкоп","order":3,"stage":3,"startDate":"2026-09-23","dueDate":"2026-11-18","workDays":40,"tasks":[{"done":false,"id":"mue16ls0wlksg","text":"Делаем ТЗ"}]},
-    {"name":"Санузел Восточно-Кругликовская","order":4,"stage":9,"startDate":"2026-09-22","dueDate":"2026-09-27","tasks":[{"done":false,"id":"mue172qjxvsjg","text":"Готово к монтажу? Укомплектовано?"}]},
-    {"name":"Шкаф Восточно-Кругликовская (спальня)","order":5,"stage":9,"startDate":"2026-08-30","dueDate":"2026-09-30","color":"#DCE6D9","tasks":[{"done":false,"id":"mue1avxoup4ie","text":"Сборка"},{"done":false,"id":"mue1b8po6voqh","text":"Комплектуем к отгрузке"},{"done":false,"id":"mue1bfd4refzf","text":"Проверить все доставки"}]},
-    {"name":"Шкаф Невкипелого","order":6,"stage":7,"startDate":"2026-09-01","dueDate":"2026-10-20","workDays":35,"tasks":[{"done":false,"id":"mue1brxbwb7pf","text":"Ждем раскрой до 29 сентября"},{"done":false,"id":"mue1cqawojqln","text":"Проверить все доставки"}]},
-    {"name":"Шкаф-купе Москва","order":7,"stage":9,"startDate":"2026-08-10","dueDate":"2026-09-28","workDays":35,"tasks":[{"done":false,"id":"mue1cw1io9kzu","text":"Сборка"},{"done":false,"id":"mue1d2jykr1wr","text":"Проверить все доставки"},{"done":false,"id":"mue1dba4ebrm8","text":"Комплектуем к отгрузке"}]},
-    {"name":"Элегант Подоконник и Цоколь","order":8,"stage":3,"startDate":"2026-09-22","dueDate":"2026-10-07","color":"#EAD6D2","tasks":[{"done":false,"id":"mue10ht39jurw","text":"Срочно спроектировать !!!"}]},
-    {"name":"Кухня Коваль","order":9,"stage":1,"startDate":"2026-09-23","dueDate":"","tasks":[{"done":false,"id":"mue1ds40n0njb","text":"Ждем готовности ремонта до 30 сентября"}]},
-    {"name":"Обувница Галицин","order":10,"stage":1,"startDate":"2026-09-23","dueDate":"","tasks":[{"done":false,"id":"mue1iitsuqadg","text":"Пойти выбрать цвет и сделать тех задание до 30 сентября"}]},
-    {"name":"Кухня Городецкий","order":1,"stage":4,"startDate":"2026-09-11","dueDate":"2026-10-30","workDays":35,"color":"","tasks":[{"done":false,"id":"mue7l4p7a8n8z","text":"Проверка после проектирования"}]}
-  ];
+  const TODAY_ISO = new Date().toISOString().slice(0,10);
+  const SEED_PROJECTS = [{"name": "Кухня Хабибулина", "order": 0, "stage": 9, "startDate": "2026-08-06", "dueDate": "2026-09-24", "workDays": 35, "tasks": [{"done": false, "id": "mue10wd9ywi9g", "text": "Собираем", "zone": "workshop", "zoneOrder": 3}, {"done": false, "id": "mue116txb038h", "text": "Ждем доставку столешницы 25 сентября", "zone": "contractors", "zoneOrder": 1}, {"done": false, "id": "mue132958hq4y", "text": "Режем столешницу", "zone": "workshop", "zoneOrder": 1}, {"done": false, "id": "mue13aqccyuo5", "text": "Ждем фасады 25 сентября", "zone": "contractors", "zoneOrder": 0}, {"done": false, "id": "mue148s8tmzsk", "text": "Комплектуем к отгрузке", "zone": "workshop", "zoneOrder": 2}, {"done": false, "id": "mue16958aqmng", "text": "Проверить все доставки", "zone": "office", "zoneOrder": 1}]}, {"name": "Кухня Городецкий", "order": 1, "stage": 4, "startDate": "2026-09-11", "dueDate": "2026-10-30", "workDays": 35, "color": "", "tasks": [{"done": false, "id": "mue7l4p7a8n8z", "text": "Проверка после проектирования", "zone": "office", "zoneOrder": 2}]}, {"name": "Обувница Москва", "order": 2, "stage": 9, "startDate": "2026-08-10", "dueDate": "2026-10-12", "workDays": 45, "tasks": [{"done": false, "id": "mue158dd8ehb1", "text": "Ждем фасады до 1 октября", "zone": "contractors", "zoneOrder": 4}, {"done": false, "id": "mue15kj7oqtgh", "text": "Собираем", "zone": "workshop", "zoneOrder": 4}, {"done": false, "id": "mue15rc51l8dp", "text": "Комплектуем к отгрузке", "zone": "workshop", "zoneOrder": 8}, {"done": false, "id": "mue1614ekxdan", "text": "Проверить все доставки", "zone": "office", "zoneOrder": 4}]}, {"name": "Кухня Майкоп", "order": 3, "stage": 3, "startDate": "2026-09-23", "dueDate": "2026-11-18", "workDays": 40, "tasks": [{"done": false, "id": "mue16ls0wlksg", "text": "Делаем ТЗ", "zone": "office", "zoneOrder": 3}]}, {"name": "Санузел Восточно-Кругликовская", "order": 4, "stage": 9, "startDate": "2026-09-22", "dueDate": "2026-09-27", "tasks": [{"done": false, "id": "mue172qjxvsjg", "text": "Готово к монтажу? Укомплектовано?", "zone": "workshop", "zoneOrder": 6}]}, {"name": "Шкаф Восточно-Кругликовская (спальня)", "order": 5, "stage": 9, "startDate": "2026-08-30", "dueDate": "2026-09-30", "color": "#DCE6D9", "tasks": [{"done": false, "id": "mue1avxoup4ie", "text": "Сборка", "zone": "workshop", "zoneOrder": 5}, {"done": false, "id": "mue1b8po6voqh", "text": "Комплектуем к отгрузке", "zone": "workshop", "zoneOrder": 7}, {"done": false, "id": "mue1bfd4refzf", "text": "Проверить все доставки", "zone": "office", "zoneOrder": 7}]}, {"name": "Шкаф Невкипелого", "order": 6, "stage": 7, "startDate": "2026-09-01", "dueDate": "2026-10-20", "workDays": 35, "tasks": [{"done": false, "id": "mue1brxbwb7pf", "text": "Ждем раскрой до 29 сентября", "zone": "contractors", "zoneOrder": 2}, {"done": false, "id": "mue1cqawojqln", "text": "Проверить все доставки", "zone": "office", "zoneOrder": 5}]}, {"name": "Шкаф-купе Москва", "order": 7, "stage": 9, "startDate": "2026-08-10", "dueDate": "2026-09-28", "workDays": 35, "tasks": [{"done": false, "id": "mue1cw1io9kzu", "text": "Сборка", "zone": "workshop", "zoneOrder": 9}, {"done": false, "id": "mue1d2jykr1wr", "text": "Проверить все доставки", "zone": "office", "zoneOrder": 0}, {"done": false, "id": "mue1dba4ebrm8", "text": "Комплектуем к отгрузке", "zone": "workshop", "zoneOrder": 0}]}, {"name": "Элегант Подоконник и Цоколь", "order": 8, "stage": 3, "startDate": "2026-09-22", "dueDate": "2026-10-07", "color": "#EAD6D2", "tasks": [{"done": false, "id": "mue10ht39jurw", "text": "Срочно спроектировать !!!", "zone": "office", "zoneOrder": 6}]}, {"name": "Кухня Коваль", "order": 9, "stage": 1, "startDate": "2026-09-23", "dueDate": "", "tasks": [{"done": false, "id": "mue1ds40n0njb", "text": "Ждем готовности ремонта до 30 сентября", "zone": "contractors", "zoneOrder": 3}]}, {"name": "Обувница Галицин", "order": 10, "stage": 1, "startDate": "2026-09-23", "dueDate": "", "tasks": [{"done": false, "id": "mue1iitsuqadg", "text": "Пойти выбрать цвет и сделать тех задание до 30 сентября", "zone": "office", "zoneOrder": 8}]}];
 
   const grid = document.getElementById('grid');
   const emptyState = document.getElementById('emptyState');
@@ -456,6 +624,9 @@
 
   let isDragging = false;
   let pendingFocusCardId = null;
+  let currentVisible = [];
+  let ganttSort = 'manual';
+  let ganttDayWidth = window.innerWidth < 640 ? 14 : 26;
 
   function render(){
     if(isDragging) return;
@@ -467,6 +638,7 @@
         if(ao !== bo) return ao - bo;
         return a.name.localeCompare(b.name, 'ru');
       });
+    currentVisible = visible;
 
     // сохраняем недописанные задачи и фокус, чтобы обновление данных их не стёрло
     const drafts = {};
@@ -515,7 +687,13 @@
         </div>
         <div class="top-row">
           <h2>${escapeHtml(p.name)}</h2>
-          <span class="drag-handle" title="Перетащить">⠿</span>
+          <span class="card-actions">
+            <button class="menu-btn" data-action="toggle-menu" title="Меню">⋮</button>
+            <span class="drag-handle" title="Перетащить">⠿</span>
+          </span>
+        </div>
+        <div class="card-menu">
+          <button data-action="rename">Переименовать</button>
         </div>
         <div class="dates">
           <input type="date" value="${p.startDate||''}" data-field="startDate">
@@ -556,11 +734,142 @@
       }
     });
     grid.querySelectorAll('.task-text').forEach(autoGrow);
+    renderGantt();
+    renderTasksBoard();
   }
 
   function autoGrow(el){
     el.style.height = 'auto';
     el.style.height = el.scrollHeight + 'px';
+  }
+
+  // ---- диаграмма Ганта ----
+  function renderGantt(){
+    const ganttChart = document.getElementById('ganttChart');
+    if(!ganttChart) return;
+    if(currentVisible.length === 0){
+      ganttChart.innerHTML = '<div class="gantt-empty">Нет текущих заказов.</div>';
+      return;
+    }
+    const dated = currentVisible.filter(p => p.startDate && p.dueDate && parseLocal(p.dueDate) >= parseLocal(p.startDate));
+    if(dated.length === 0){
+      ganttChart.innerHTML = '<div class="gantt-empty">Ни у одного заказа не указаны обе даты — нечего строить.</div>';
+      return;
+    }
+
+    let minStart = parseLocal(dated[0].startDate);
+    let maxDue = parseLocal(dated[0].dueDate);
+    dated.forEach(p => {
+      const s = parseLocal(p.startDate), d = parseLocal(p.dueDate);
+      if(s < minStart) minStart = s;
+      if(d > maxDue) maxDue = d;
+    });
+    const totalDays = Math.round((maxDue - minStart)/86400000) + 1;
+    const chartWidth = totalDays * ganttDayWidth;
+
+    let sorted = currentVisible.slice();
+    if(ganttSort === 'due-asc'){
+      sorted.sort((a,b) => (a.dueDate||'9999-99-99').localeCompare(b.dueDate||'9999-99-99'));
+    } else if(ganttSort === 'due-desc'){
+      sorted.sort((a,b) => (b.dueDate||'').localeCompare(a.dueDate||''));
+    } else if(ganttSort === 'dur-asc' || ganttSort === 'dur-desc'){
+      const dur = p => (p.startDate && p.dueDate) ? workingDaysBetween(parseLocal(p.startDate), parseLocal(p.dueDate)) : -1;
+      sorted.sort((a,b) => ganttSort==='dur-asc' ? dur(a)-dur(b) : dur(b)-dur(a));
+    } else if(ganttSort === 'stage-asc'){
+      sorted.sort((a,b) => a.stage - b.stage);
+    }
+
+    const ticks = [];
+    const cur = new Date(minStart);
+    while(cur.getDay() !== 1) cur.setDate(cur.getDate()-1);
+    while(cur <= maxDue){
+      const offset = Math.round((cur - minStart)/86400000);
+      if(offset >= 0){
+        ticks.push({left: offset*ganttDayWidth, label: `${String(cur.getDate()).padStart(2,'0')}.${String(cur.getMonth()+1).padStart(2,'0')}`});
+      }
+      cur.setDate(cur.getDate()+7);
+    }
+    const today = new Date(); today.setHours(0,0,0,0);
+    const todayOffset = Math.round((today - minStart)/86400000);
+    const todayLeft = todayOffset*ganttDayWidth;
+    const showToday = today >= minStart && today <= maxDue;
+
+    let html = `<div class="gantt-header-row">
+      <div class="gantt-header-spacer"></div>
+      <div class="gantt-header-track" style="width:${chartWidth}px;">
+        ${ticks.map(t => `<div class="gantt-tick" style="left:${t.left}px;"><span>${t.label}</span></div>`).join('')}
+      </div>
+    </div>`;
+
+    html += sorted.map(p => {
+      const hasDates = p.startDate && p.dueDate && parseLocal(p.dueDate) >= parseLocal(p.startDate);
+      let trackInner = '';
+      if(hasDates){
+        const startOffset = Math.round((parseLocal(p.startDate) - minStart)/86400000);
+        const dueOffset = Math.round((parseLocal(p.dueDate) - minStart)/86400000);
+        const left = startOffset*ganttDayWidth;
+        const width = Math.max(ganttDayWidth*0.6, (dueOffset-startOffset+1)*ganttDayWidth - 2);
+        const overdue = parseLocal(p.dueDate) < today;
+        const bg = p.color || (overdue ? '#B23A2E' : '#3F5D54');
+        trackInner = `<div class="gantt-bar" style="left:${left}px; width:${width}px; background:${bg};" title="${escapeAttr(p.name)}: ${fmtDate(p.startDate)} → ${fmtDate(p.dueDate)}"></div>`;
+      } else {
+        trackInner = `<div class="gantt-nodate">нет срока</div>`;
+      }
+      if(showToday){
+        trackInner += `<div class="gantt-today" style="left:${todayLeft}px;"></div>`;
+      }
+      return `<div class="gantt-row">
+        <div class="gantt-label" title="${escapeAttr(p.name)}">${escapeHtml(p.name)}</div>
+        <div class="gantt-track" style="width:${chartWidth}px;">${trackInner}</div>
+      </div>`;
+    }).join('');
+
+    ganttChart.innerHTML = html;
+  }
+
+  // ---- доска задач по исполнителям ----
+  function buildFlatTasks(){
+    const flat = [];
+    currentVisible.forEach(p => {
+      (p.tasks||[]).forEach(t => flat.push({...t, projectId:p.id, projectName:p.name, projectColor:p.color}));
+    });
+    return flat;
+  }
+
+  function renderTasksBoard(){
+    const board = document.getElementById('tasksBoard');
+    if(!board) return;
+    const flat = buildFlatTasks();
+    const zones = {unassigned:[], workshop:[], office:[], contractors:[]};
+    flat.forEach(t => {
+      const z = (t.zone && zones[t.zone]) ? t.zone : 'unassigned';
+      zones[z].push(t);
+    });
+    ['workshop','office','contractors'].forEach(z => zones[z].sort((a,b) => (a.zoneOrder??0)-(b.zoneOrder??0)));
+
+    Object.keys(zones).forEach(zoneKey => {
+      const body = board.querySelector(`[data-zone-body="${zoneKey}"]`);
+      if(!body) return;
+      if(zones[zoneKey].length === 0){
+        body.innerHTML = `<div class="board-empty">Пусто</div>`;
+        return;
+      }
+      body.innerHTML = zones[zoneKey].map((t,idx) => `
+        <div class="board-task ${t.done?'done':''}" data-project-id="${escapeAttr(t.projectId)}" data-task-id="${escapeAttr(t.id)}">
+          <span class="board-task-num">${idx+1}</span>
+          <input type="checkbox" data-action="toggle-board-task" ${t.done?'checked':''}>
+          <span class="board-task-text">${escapeHtml(t.text)}</span>
+          <span class="board-task-tag"${t.projectColor?` style="background:${t.projectColor}"`:''}>${escapeHtml(t.projectName)}</span>
+        </div>`).join('');
+    });
+  }
+
+  async function patchTaskFields(projectId, taskId, patch){
+    const p = projects.find(x => x.id === projectId);
+    if(!p) return;
+    const newTasks = (p.tasks||[]).map(t => t.id === taskId ? {...t, ...patch} : t);
+    p.tasks = newTasks;
+    await updateProject(projectId, {tasks:newTasks});
   }
 
   function dayWord(n){
@@ -686,6 +995,41 @@
   function closeAllColorMenus(){
     document.querySelectorAll('.color-menu.open').forEach(m => m.classList.remove('open'));
   }
+  function closeAllCardMenus(){
+    document.querySelectorAll('.card-menu.open').forEach(m => m.classList.remove('open'));
+  }
+
+  function startRename(card){
+    const id = card.dataset.id;
+    const p = projects.find(x => x.id === id);
+    const h2 = card.querySelector('.top-row h2');
+    if(!h2) return;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'rename-input';
+    input.value = p ? p.name : h2.textContent;
+    h2.replaceWith(input);
+    input.focus();
+    input.select();
+    let done = false;
+    const finish = async (save) => {
+      if(done) return;
+      done = true;
+      const newName = input.value.trim();
+      const h2new = document.createElement('h2');
+      h2new.textContent = (save && newName) ? newName : (p ? p.name : '');
+      input.replaceWith(h2new);
+      if(save && newName && p && newName !== p.name){
+        p.name = newName;
+        await updateProject(id, {name: newName});
+      }
+    };
+    input.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter'){ e.preventDefault(); finish(true); }
+      else if(e.key === 'Escape'){ e.preventDefault(); finish(false); }
+    });
+    input.addEventListener('blur', () => finish(true));
+  }
 
   grid.addEventListener('click', async (e) => {
     const toggleBtn = e.target.closest('[data-action="toggle-color"]');
@@ -693,7 +1037,24 @@
       const menu = toggleBtn.closest('.card').querySelector('.color-menu');
       const wasOpen = menu.classList.contains('open');
       closeAllColorMenus();
+      closeAllCardMenus();
       if(!wasOpen) menu.classList.add('open');
+      return;
+    }
+    const menuToggle = e.target.closest('[data-action="toggle-menu"]');
+    if(menuToggle){
+      const menu = menuToggle.closest('.card').querySelector('.card-menu');
+      const wasOpen = menu.classList.contains('open');
+      closeAllCardMenus();
+      closeAllColorMenus();
+      if(!wasOpen) menu.classList.add('open');
+      return;
+    }
+    const renameBtn = e.target.closest('[data-action="rename"]');
+    if(renameBtn){
+      const card = renameBtn.closest('.card');
+      closeAllCardMenus();
+      startRename(card);
       return;
     }
     const delBtn = e.target.closest('[data-action="del-task"]');
@@ -717,6 +1078,9 @@
   document.addEventListener('click', (e) => {
     if(!e.target.closest('.dot-btn') && !e.target.closest('.color-menu')){
       closeAllColorMenus();
+    }
+    if(!e.target.closest('.menu-btn') && !e.target.closest('.card-menu')){
+      closeAllCardMenus();
     }
   });
 
@@ -820,6 +1184,105 @@
       card.remove();
     };
   });
+
+  // ---- фильтр Ганта ----
+  const GANTT_SORT_LABELS = {
+    manual: 'как в карточках',
+    'due-asc': 'сначала горящие',
+    'due-desc': 'сначала дальние',
+    'dur-asc': 'сначала короткие',
+    'dur-desc': 'сначала длинные',
+    'stage-asc': 'сначала ранние стадии'
+  };
+  const ganttFilterBtn = document.getElementById('ganttFilterBtn');
+  const ganttFilterMenu = document.getElementById('ganttFilterMenu');
+  const ganttFilterLabel = document.getElementById('ganttFilterLabel');
+  document.getElementById('ganttZoomOut').addEventListener('click', () => {
+    ganttDayWidth = Math.max(6, ganttDayWidth - 4);
+    renderGantt();
+  });
+  document.getElementById('ganttZoomIn').addEventListener('click', () => {
+    ganttDayWidth = Math.min(48, ganttDayWidth + 4);
+    renderGantt();
+  });
+  ganttFilterBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    ganttFilterMenu.classList.toggle('open');
+  });
+  ganttFilterMenu.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-sort]');
+    if(!btn) return;
+    ganttSort = btn.dataset.sort;
+    ganttFilterLabel.textContent = GANTT_SORT_LABELS[ganttSort];
+    ganttFilterMenu.classList.remove('open');
+    renderGantt();
+  });
+  document.addEventListener('click', (e) => {
+    if(!e.target.closest('.filter-wrap')) ganttFilterMenu.classList.remove('open');
+  });
+
+  // ---- доска задач: отметка выполнения ----
+  const tasksBoard = document.getElementById('tasksBoard');
+  tasksBoard.addEventListener('change', async (e) => {
+    if(e.target.dataset.action !== 'toggle-board-task') return;
+    const el = e.target.closest('.board-task');
+    await patchTaskFields(el.dataset.projectId, el.dataset.taskId, {done: e.target.checked});
+  });
+
+  // ---- доска задач: перетаскивание между колонками ----
+  tasksBoard.addEventListener('pointerdown', (e) => {
+    if(e.target.closest('input[type=checkbox]')) return;
+    const item = e.target.closest('.board-task');
+    if(!item) return;
+    e.preventDefault();
+    item.classList.add('dragging');
+    isDragging = true;
+
+    const onMove = (ev) => {
+      const under = document.elementFromPoint(ev.clientX, ev.clientY);
+      const col = under && under.closest('.board-col-body');
+      if(!col) return;
+      const after = getVerticalAfterElement(col, ev.clientY);
+      if(after == null) col.appendChild(item);
+      else if(after !== item) col.insertBefore(item, after);
+    };
+    const onUp = async () => {
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onUp);
+      document.removeEventListener('pointercancel', onUp);
+      item.classList.remove('dragging');
+      isDragging = false;
+
+      for(const col of tasksBoard.querySelectorAll('.board-col-body')){
+        const zoneKey = col.dataset.zoneBody;
+        const els = [...col.querySelectorAll('.board-task')];
+        for(let i = 0; i < els.length; i++){
+          const el = els[i];
+          const projectId = el.dataset.projectId, taskId = el.dataset.taskId;
+          const p = projects.find(x => x.id === projectId);
+          const t = p && (p.tasks||[]).find(x => x.id === taskId);
+          if(!t) continue;
+          if(zoneKey === 'unassigned'){
+            if(t.zone){ await patchTaskFields(projectId, taskId, {zone:null}); }
+          } else if(t.zone !== zoneKey || t.zoneOrder !== i){
+            await patchTaskFields(projectId, taskId, {zone:zoneKey, zoneOrder:i});
+          }
+        }
+      }
+    };
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+    document.addEventListener('pointercancel', onUp);
+  });
+
+  function getVerticalAfterElement(container, y){
+    const items = [...container.querySelectorAll('.board-task:not(.dragging)')];
+    for(const el of items){
+      const box = el.getBoundingClientRect();
+      if(y < box.top + box.height/2) return el;
+    }
+    return null;
+  }
 
   // ---- хранилище (Firebase Firestore, либо демо-режим без сохранения) ----
   async function addProject(data){
